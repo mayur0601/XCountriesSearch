@@ -7,7 +7,6 @@ export default function App() {
   const [filteredCountries, setFilteredCountries] = useState([]);
   const [showAllCountries, setShowAllCountries] = useState(true);
 
-  const [timeOutId, setTimeOutId] = useState();
 
   const fetchCountries = async () => {
     try {
@@ -25,7 +24,6 @@ export default function App() {
       fetchCountries();
     }
     let result = countries.filter((item) => {
-      // return item.name.common.toLowerCase().startsWith(country.toLowerCase());
       return item.name.common.toLowerCase().includes(country.toLowerCase());
     });
     console.log("result is: ", result);
@@ -33,15 +31,8 @@ export default function App() {
     setShowAllCountries(false);
   };
 
-  const debounceSearch = (e, time) => {
-    if (timeOutId) {
-      clearTimeout(timeOutId);
-    }
-    let timeOutIdTemp = setTimeout(() => {
-      fetchCountriesByName(e.target.value);
-    }, time);
-
-    setTimeOutId(timeOutIdTemp);
+  const debounceSearch = (e) => {
+    fetchCountriesByName(e.target.value);
   };
 
   useEffect(() => {
@@ -56,7 +47,7 @@ export default function App() {
           name="search"
           id="search"
           placeholder="Search for a countries..."
-          onChange={(e) => debounceSearch(e, 500)}
+          onChange={(e) => debounceSearch(e)}
         />
       </div>
       {showAllCountries ? (
