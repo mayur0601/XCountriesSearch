@@ -1,68 +1,74 @@
 import { useEffect, useState } from "react";
-import "./App.css";
-import Card from "./Card";
+import axios from "axios";
+import CountriesSearch from "./CountriesSearch";
+import './App.css';
 
-export default function App() {
-  const [countries, setCountries] = useState([]);
-  const [filteredCountries, setFilteredCountries] = useState([]);
-  const [showAllCountries, setShowAllCountries] = useState(true);
+function App() {
+  const [countryData, setCountryData] = useState([]);
+  const [filterCountryData, setFilterCountryData] = useState([]);
+  const [searchText, setSearchText] = useState("");
 
+  const handleChange = (e) => {
+    setSearchText(e.target.value);
+  };
 
-  const fetchCountries = async () => {
+  const fetchCountryData = async () => {
+    let url = "https://restcountries.com/v3.1/all";
     try {
-      let res = await fetch("https://restcountries.com/v3.1/all");
-      let data = await res.json();
-      setCountries(data);
-      setShowAllCountries(true);
+      let response = await axios.get(url);
+      setCountryData(response.data);
+      setFilterCountryData(response.data);
     } catch (error) {
-      console.log(error);
+      console.log("Error: ", error);
     }
-  };
-
-  const fetchCountriesByName = (country) => {
-    if (!country) {
-      fetchCountries();
-    }
-    let result = countries.filter((item) => {
-      return item.name.common.toLowerCase().includes(country.toLowerCase());
-    });
-    console.log("result is: ", result);
-    setFilteredCountries(result);
-    setShowAllCountries(false);
-  };
-
-  const debounceSearch = (e) => {
-    fetchCountriesByName(e.target.value);
   };
 
   useEffect(() => {
-    fetchCountries();
+    fetchCountryData();
   }, []);
+
+  const searchCountries = async () => {
+    if (searchText === "") {
+      setFilterCountryData(countryData);
+    }
+
+    let url = "https://restcountries.com/v3.1/all";
+
+    try {
+      let response = await axios.get(url);
+
+      const filteredData = response.data.filter((country) =>
+        country.name.common.toLowerCase().includes(searchText.toLowerCase()),
+      );
+
+      setFilterCountryData(filteredData);
+    } catch (error) {
+      console.log("Error: ", error);
+    }
+  };
+
+  useEffect(() => {
+    searchCountries();
+  }, [searchText]);
 
   return (
     <div>
-      <div className="searchBar">
-        <input
-          type="text"
-          name="search"
-          id="search"
-          placeholder="Search for a countries..."
-          onChange={(e) => debounceSearch(e)}
-        />
+      <div className="searchSection">
+        <form>
+          <input
+            type="text"
+            placeholder="Search for countries..."
+            value={searchText}
+            onChange={(e) => handleChange(e)}
+          />
+        </form>
       </div>
-      {showAllCountries ? (
-        <div className="countries_container">
-          {countries?.map((country) => {
-            return <Card key={country.name.common} country={country} />;
-          })}
-        </div>
-      ) : (
-        <div className="countries_container">
-          {filteredCountries?.map((country) => {
-            return <Card key={country.name.common} country={country} />;
-          })}
-        </div>
-      )}
+      <div className="App">
+        {filterCountryData &&
+          filterCountryData.map((ele) => <CountriesSearch data={ele} />)}
+      </div>
     </div>
   );
 }
+
+export default App;
